@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 )
 
 type args struct {
@@ -30,13 +31,17 @@ func parseArgs() (*args, error) {
 }
 
 func main() {
-	db, err := openDB("./test.db")
+	db, err := openDB("/home/mfulz/test.db")
 	if err != nil {
 		panic(err)
 	}
 
-	err = db.AddPath("/home/mfulz/Projects")
+	d, _ := os.Getwd()
+	err = db.AddPath(d)
 	if err != nil {
 		panic(err)
 	}
+
+	p, _ := db.GetPathes()
+	fmt.Println(p)
 }
