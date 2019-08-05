@@ -69,4 +69,5 @@ Usage of shellbuddy:
 
 ## shellbuddy in action
 
+![Alt text](./shellbuddy.svg)
 <img src="./shellbuddy.svg">
