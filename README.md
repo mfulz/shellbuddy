@@ -69,4 +69,4 @@ Usage of shellbuddy:
 
 ## shellbuddy in action
 
-<img src=".shellbuddy.svg">
+<img src="./shellbuddy.svg">
