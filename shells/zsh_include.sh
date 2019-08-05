@@ -26,3 +26,5 @@ function h() {
         print -s ${cmd}
     fi
 }
+
+PROMPT=${PROMPT}'$(shellbuddy -cmd -path -add)'

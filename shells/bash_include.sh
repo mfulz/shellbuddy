@@ -26,3 +26,5 @@ function h() {
         history -s ${cmd}
     fi
 }
+
+PS1=${PS1}'$(history -w && shellbuddy -cmd -path -add)'
