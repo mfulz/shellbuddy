@@ -69,4 +69,4 @@ Usage of shellbuddy:
 
 ## shellbuddy in action
 
-![shellbuddy in action](./shellbuddy.svg)
+![shellbuddy in action](./shellbuddy.gif)
