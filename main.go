@@ -153,12 +153,17 @@ func (r *appRuntime) AddEntries() error {
 
 		historyl := strings.Split(string(history), "\n")
 		if len(historyl) > 2 {
-			cmds := historyl[len(historyl)-3]
 			var cmd string
 			switch r.shellType {
 			case ZSH:
+				cmds := historyl[len(historyl)-2]
 				cmd = strings.SplitAfterN(cmds, ";", 2)[1]
+				if cmd == "h" {
+					cmds = historyl[len(historyl)-3]
+					cmd = strings.SplitAfterN(cmds, ";", 2)[1]
+				}
 			case BASH:
+				cmds := historyl[len(historyl)-2]
 				cmd = cmds
 			default:
 				return fmt.Errorf("Unknown shell: %s", r.shellType)
