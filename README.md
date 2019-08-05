@@ -70,4 +70,3 @@ Usage of shellbuddy:
 ## shellbuddy in action
 
 ![shellbuddy in action](./shellbuddy.svg)
-<img src="./shellbuddy.svg">
