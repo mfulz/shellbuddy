@@ -1,0 +1,26 @@
+pkgname=shellbuddy
+pkgver=0.1
+pkgrel=1
+pkgdesc="History and path tracking for shells"
+arch=('x86_64')
+url="https://gitea.olznet.de/OlzNet/$pkgname"
+license=('GPL')
+makedepends=('go-pie')
+source=("git+https://gitea.olznet.de:443/OlzNet/shellbuddy.git")
+sha256sums=('SKIP')
+
+build() {
+    cd $pkgname
+    go build \
+        -gcflags "all=-trimpath=$PWD" \
+        -asmflags "all=-trimpath=$PWD" \
+        -ldflags "-extldflags $LDFLAGS" \
+        -o $pkgname .
+}
+
+package() {
+    cd $pkgname
+    install -Dm755 $pkgname "$pkgdir"/usr/bin/$pkgname
+    install -Dm644 shells/zsh_include.sh "$pkgdir"/usr/share/$pkgname/zsh_include.sh
+    install -Dm644 shells/bash_include.sh "$pkgdir"/usr/share/$pkgname/bash_include.sh
+}
