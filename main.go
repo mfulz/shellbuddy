@@ -52,25 +52,27 @@ type args struct {
 }
 
 type Config struct {
-	DBPath      string
-	Timezone    string
-	MaxEntries  int
-	VimMode     bool
-	ShellType   string
-	HistoryFile string
+	DBPath            string
+	Timezone          string
+	MaxEntries        int
+	VimMode           bool
+	ShellType         string
+	HistoryFile       string
+	IgnoreFromHistory []string
 }
 
 type appRuntime struct {
-	db          *DB
-	location    *time.Location
-	add         bool
-	path        bool
-	cmd         bool
-	search      string
-	maxEntries  int
-	vimMode     bool
-	shellType   ShellType
-	historyFile string
+	db                *DB
+	location          *time.Location
+	add               bool
+	path              bool
+	cmd               bool
+	search            string
+	maxEntries        int
+	vimMode           bool
+	shellType         ShellType
+	historyFile       string
+	ignoreFromHistory []string
 }
 
 func initRuntime(a *args) (*appRuntime, error) {
@@ -111,6 +113,7 @@ func initRuntime(a *args) (*appRuntime, error) {
 	if err != nil {
 		return ret, err
 	}
+	ret.ignoreFromHistory = config.IgnoreFromHistory
 	ret.historyFile = config.HistoryFile
 
 	return ret, nil
@@ -153,20 +156,44 @@ func (r *appRuntime) AddEntries() error {
 
 		historyl := strings.Split(string(history), "\n")
 		if len(historyl) > 2 {
-			var cmd string
+			// remove last entry if empty
+			if historyl[len(historyl)-1] == "" {
+				historyl = historyl[0 : len(historyl)-1]
+			}
+
 			switch r.shellType {
 			case ZSH:
-				cmds := historyl[len(historyl)-2]
-				cmd = strings.SplitAfterN(cmds, ";", 2)[1]
-				if cmd == "h" {
-					cmds = historyl[len(historyl)-3]
-					cmd = strings.SplitAfterN(cmds, ";", 2)[1]
+				for i, c := range historyl {
+					csplit := strings.SplitN(c, ";", 2)
+					if len(csplit) == 2 {
+						historyl[i] = csplit[1]
+					}
 				}
 			case BASH:
-				cmds := historyl[len(historyl)-2]
-				cmd = cmds
+				break
 			default:
 				return fmt.Errorf("Unknown shell: %s", r.shellType)
+			}
+
+			var cmd string
+			index := len(historyl) - 1
+			for {
+				ignore := false
+				cmd = historyl[index]
+				for _, i := range r.ignoreFromHistory {
+					if i == strings.SplitN(cmd, " ", 2)[0] {
+						ignore = true
+						break
+					}
+				}
+				if ignore {
+					if index == 0 {
+						return nil
+					}
+					index--
+				} else {
+					break
+				}
 			}
 			err = r.db.AddCmd(cmd)
 			if err != nil {
