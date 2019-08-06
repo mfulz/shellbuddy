@@ -80,7 +80,7 @@ func writeConfig(a *args) error {
 	if _, err := cf.WriteString(line); err != nil {
 		return err
 	}
-	line = "IgnoreFromHistory = [\"h\", \"c\"]\n\n"
+	line = "IgnoreFromHistory = [\"h\", \"c\", \"hi\", \"ci\"]\n\n"
 	if _, err := cf.WriteString(line); err != nil {
 		return err
 	}

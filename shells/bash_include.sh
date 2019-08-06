@@ -27,4 +27,22 @@ function h() {
     fi
 }
 
+function ci() {
+    if [ -z ${1} ]
+    then
+        shellbuddy -stdin -entries dirs
+    else
+        shellbuddy -stdin -entries dirs -search "${1}"
+    fi
+}
+
+function hi() {
+    if [ -z ${1} ]
+    then
+        shellbuddy -stdin -entries commands
+    else
+        shellbuddy -stdin -entries commands -search "${1}"
+    fi
+}
+
 PS1=${PS1}'$(history -w && shellbuddy -add)'

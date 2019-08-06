@@ -16,6 +16,7 @@ type args struct {
 	init        bool
 	shellType   string
 	historyFile string
+	stdin       bool
 }
 
 func parseArgs() (*args, error) {
@@ -34,6 +35,7 @@ func parseArgs() (*args, error) {
 	flag.StringVar(&ret.etype, "entries", "", "Select type of entries. Can be provided as comma seperated list (\"dirs,commands\"). If omitted all entries will be used")
 	flag.StringVar(&ret.search, "search", "", "Select entries by search string")
 	flag.BoolVar(&ret.init, "init", false, "Initialize configuration")
+	flag.BoolVar(&ret.stdin, "stdin", false, "Write directly to the shell's input buffer via ioctl")
 
 	flag.Parse()
 
@@ -82,5 +84,12 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Fprintf(os.Stderr, "%v", e[i].text)
+	if a.stdin {
+		err = WriteToShellStdin(e[i].text)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		fmt.Fprintf(os.Stderr, "%v", e[i].text)
+	}
 }

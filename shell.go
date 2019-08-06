@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/mitchellh/go-ps"
+	"golang.org/x/sys/unix"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -43,6 +44,17 @@ func ShellToType(t string) (ShellType, error) {
 	}
 
 	return -1, fmt.Errorf("Unknown shell type: %s", t)
+}
+
+func WriteToShellStdin(in string) error {
+	for _, c := range in {
+		err := unix.IoctlSetPointerInt(int(os.Stdin.Fd()), unix.TIOCSTI, int(c))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func randomIdentifier() string {
