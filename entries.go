@@ -8,8 +8,8 @@ import (
 type EntryType int
 
 const (
-	PATH EntryType = 0
-	CMD  EntryType = 1
+	DIR     EntryType = 0
+	COMMAND EntryType = 1
 )
 
 type Entry struct {
@@ -22,13 +22,24 @@ type Entry struct {
 
 func (e EntryType) String() string {
 	switch e {
-	case PATH:
-		return "PATH"
-	case CMD:
+	case DIR:
+		return "DIR"
+	case COMMAND:
 		return "COMMAND"
 	default:
 		return "UNKNOWN"
 	}
+}
+
+func StringToEntryType(entry string) (EntryType, error) {
+	switch entry {
+	case "dirs", "DIR":
+		return DIR, nil
+	case "commands", "COMMAND":
+		return COMMAND, nil
+	}
+
+	return -1, fmt.Errorf("Unknown EntryType: %s", entry)
 }
 
 func (e Entry) String() string {

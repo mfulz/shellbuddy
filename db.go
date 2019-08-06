@@ -6,14 +6,16 @@ import (
 )
 
 type DB struct {
-	conn                         *sql.DB
-	addEntryStmt                 *sql.Stmt
-	selectEntryStmt              *sql.Stmt
-	updateEntryStmt              *sql.Stmt
-	selectEntriesStmt            *sql.Stmt
-	selectAllEntriesStmt         *sql.Stmt
-	selectEntriesByStringStmt    *sql.Stmt
-	selectAllEntriesByStringStmt *sql.Stmt
+	conn                          *sql.DB
+	addEntryStmt                  *sql.Stmt
+	selectEntryStmt               *sql.Stmt
+	updateEntryStmt               *sql.Stmt
+	selectEntriesStmt             *sql.Stmt
+	selectAllEntriesStmt          *sql.Stmt
+	selectEntriesByStringStmt     *sql.Stmt
+	selectAllEntriesByStringStmt  *sql.Stmt
+	selectEntriesByTypeStmt       *sql.Stmt
+	selectEntriesByStringTypeStmt *sql.Stmt
 }
 
 func (db *DB) getEntry(text string, etype EntryType) (Entry, error) {
@@ -113,33 +115,62 @@ func (db *DB) GetAllEntries(search string) ([]Entry, error) {
 	return ret, nil
 }
 
+func (db *DB) GetAllEntriesByType(search string, etypes []EntryType) ([]Entry, error) {
+	ret := []Entry{}
+
+	var err error
+	var res *sql.Rows
+
+	if search == "" {
+		res, err = db.selectEntriesByTypeStmt.Query(etypes)
+	} else {
+		res, err = db.selectEntriesByStringTypeStmt.Query(etypes, "%"+search+"%")
+	}
+	if err != nil {
+		return ret, err
+	}
+	defer res.Close()
+
+	for res.Next() {
+		e := Entry{}
+		err := res.Scan(&e.id, &e.prio, &e.text, &e.timestamp, &e.etype)
+		if err != nil {
+			return []Entry{}, err
+		}
+
+		ret = append(ret, e)
+	}
+
+	return ret, nil
+}
+
 func (db *DB) AddPath(path string) error {
-	err := db.addEntry(path, PATH)
+	err := db.addEntry(path, DIR)
 	return err
 }
 
 func (db *DB) GetPath(path string) (Entry, error) {
-	ret, err := db.getEntry(path, PATH)
+	ret, err := db.getEntry(path, DIR)
 	return ret, err
 }
 
 func (db *DB) GetPathes(search string) ([]Entry, error) {
-	ret, err := db.getEntries(search, PATH)
+	ret, err := db.getEntries(search, DIR)
 	return ret, err
 }
 
 func (db *DB) AddCmd(cmd string) error {
-	err := db.addEntry(cmd, CMD)
+	err := db.addEntry(cmd, COMMAND)
 	return err
 }
 
 func (db *DB) GetCmd(cmd string) (Entry, error) {
-	ret, err := db.getEntry(cmd, CMD)
+	ret, err := db.getEntry(cmd, COMMAND)
 	return ret, err
 }
 
 func (db *DB) GetCmds(cmd string) ([]Entry, error) {
-	ret, err := db.getEntries(cmd, CMD)
+	ret, err := db.getEntries(cmd, COMMAND)
 	return ret, err
 }
 
@@ -202,6 +233,16 @@ func openDB(path string) (*DB, error) {
 	}
 
 	ret.selectAllEntriesByStringStmt, err = ret.conn.Prepare("SELECT id, prio, text, timestamp, etype FROM entries WHERE text LIKE ? ORDER BY prio DESC, timestamp DESC")
+	if err != nil {
+		return nil, err
+	}
+
+	ret.selectEntriesByTypeStmt, err = ret.conn.Prepare("SELECT id, prio, text, timestamp, etype FROM entries WHERE etype = ANY(?) ORDER BY prio DESC, timestamp DESC")
+	if err != nil {
+		return nil, err
+	}
+
+	ret.selectEntriesByStringTypeStmt, err = ret.conn.Prepare("SELECT id, prio, text, timestamp, etype FROM entries WHERE etype = ANY(?) AND text LIKE ? ORDER BY prio DESC, timestamp DESC")
 	if err != nil {
 		return nil, err
 	}
