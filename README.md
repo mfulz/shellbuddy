@@ -54,17 +54,19 @@ Add the following line to the end of your .bashrc (with the full path to the fil
 ```sh
 Usage of shellbuddy:
   -add
-        If you want to add / update an entry
-  -cmd
-        If you want to add / update commands
+        Adding / Updating entries in the database
   -config string
         Configuration file to use. Defaults to ~/.shellbuddy/config (default "/home/mfulz/.shellbuddy/config")
+  -entries string
+        Select type of entries. Can be provided as comma seperated list ("dirs,commands"). If omitted all entries will be used
+  -history string
+        Specify the path to the shell's history file. Normally this will be detected automatically.
   -init
-        If you want to create a default config file
-  -path
-        If you want to add / update pathes
+        Initialize configuration
   -search string
-        Select entries by string
+        Select entries by search string
+  -shell string
+        Specify the desired shell ("bash" or "zsh"). Normally this will be detected automatically.
 ```
 
 ## shellbuddy in action
