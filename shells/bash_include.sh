@@ -1,9 +1,9 @@
 function c() {
     if [ -z ${1} ]
     then
-        dir=$(shellbuddy -path 3>&1 1>&2 2>&3)
+        dir=$(shellbuddy -entries dirs 3>&1 1>&2 2>&3)
     else
-        dir=$(shellbuddy -path -search "${1}" 3>&1 1>&2 2>&3)
+        dir=$(shellbuddy -entries dirs -search "${1}" 3>&1 1>&2 2>&3)
     fi
 
     if [ $? -eq 0 ]
@@ -15,9 +15,9 @@ function c() {
 function h() {
     if [ -z ${1} ]
     then
-        cmd=$(shellbuddy -cmd 3>&1 1>&2 2>&3)
+        cmd=$(shellbuddy -entries commands 3>&1 1>&2 2>&3)
     else
-        cmd=$(shellbuddy -cmd -search "${1}" 3>&1 1>&2 2>&3)
+        cmd=$(shellbuddy -entries commands -search "${1}" 3>&1 1>&2 2>&3)
     fi
 
     if [ $? -eq 0 ]
@@ -27,4 +27,4 @@ function h() {
     fi
 }
 
-PS1=${PS1}'$(history -w && shellbuddy -cmd -path -add)'
+PS1=${PS1}'$(history -w && shellbuddy -add)'

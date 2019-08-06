@@ -31,6 +31,7 @@ type appRuntime struct {
 
 func initRuntime(a *args) (*appRuntime, error) {
 	ret := new(appRuntime)
+	ret.etype = nil
 	config := Config{}
 	config.Timezone = "Europe/Berlin"
 	config.VimMode = false
@@ -61,12 +62,13 @@ func initRuntime(a *args) (*appRuntime, error) {
 	if a.etype != "" {
 		etypesl := strings.Split(a.etype, ",")
 		if len(etypesl) > 0 {
-			for _, e := range etypesl {
+			ret.etype = make([]EntryType, len(etypesl))
+			for i, e := range etypesl {
 				etype, err := StringToEntryType(e)
 				if err != nil {
 					return nil, err
 				}
-				ret.etype = append(ret.etype, etype)
+				ret.etype[i] = etype
 			}
 		}
 	}
@@ -177,6 +179,7 @@ func (r *appRuntime) AddEntries() error {
 }
 
 func (r *appRuntime) Run() ([]Entry, error) {
+	defer r.db.Close()
 	if r.add {
 		return []Entry{}, r.AddEntries()
 	}

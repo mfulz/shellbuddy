@@ -118,18 +118,44 @@ func (db *DB) GetAllEntries(search string) ([]Entry, error) {
 func (db *DB) GetAllEntriesByType(search string, etypes []EntryType) ([]Entry, error) {
 	ret := []Entry{}
 
-	var err error
 	var res *sql.Rows
 
 	if search == "" {
-		res, err = db.selectEntriesByTypeStmt.Query(etypes)
+		qetypes := make([]interface{}, len(etypes))
+		for i, e := range etypes {
+			qetypes[i] = e
+		}
+
+		stmt, err := db.genInQuery(len(qetypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE etype IN (", ") ORDER BY prio DESC, timestamp DESC")
+		if err != nil {
+			return nil, err
+		}
+		defer stmt.Close()
+
+		res, err = stmt.Query(qetypes...)
+		if err != nil {
+			return ret, err
+		}
+		defer res.Close()
 	} else {
-		res, err = db.selectEntriesByStringTypeStmt.Query(etypes, "%"+search+"%")
+		qetypes := make([]interface{}, len(etypes)+1)
+		qetypes[0] = "%" + search + "%"
+		for i, e := range etypes {
+			qetypes[i+1] = e
+		}
+
+		stmt, err := db.genInQuery(len(qetypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE text LIKE ? AND etype IN (", ") ORDER BY prio DESC, timestamp DESC")
+		if err != nil {
+			return nil, err
+		}
+		defer stmt.Close()
+
+		res, err = stmt.Query(qetypes...)
+		if err != nil {
+			return ret, err
+		}
+		defer res.Close()
 	}
-	if err != nil {
-		return ret, err
-	}
-	defer res.Close()
 
 	for res.Next() {
 		e := Entry{}
@@ -174,6 +200,26 @@ func (db *DB) GetCmds(cmd string) ([]Entry, error) {
 	return ret, err
 }
 
+func (db *DB) genInQuery(l int, queryStart string, queryEnd string) (*sql.Stmt, error) {
+	ret, err := db.conn.Prepare(queryStart + genQueryPlaceholders(l) + queryEnd)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+func (db *DB) Close() {
+	db.addEntryStmt.Close()
+	db.selectEntryStmt.Close()
+	db.updateEntryStmt.Close()
+	db.selectEntriesStmt.Close()
+	db.selectAllEntriesStmt.Close()
+	db.selectEntriesByStringStmt.Close()
+	db.selectAllEntriesByStringStmt.Close()
+	db.conn.Close()
+}
+
 func initDB(db *sql.DB) error {
 	stmt, err := db.Prepare("CREATE TABLE IF NOT EXISTS entries(id INTEGER PRIMARY KEY, prio INTEGER, text TEXT, timestamp DATETIME, etype INTEGER)")
 	if err != nil {
@@ -186,6 +232,20 @@ func initDB(db *sql.DB) error {
 	}
 
 	return nil
+}
+
+func genQueryPlaceholders(l int) string {
+	ret := ""
+
+	for i := 0; i < l; i++ {
+		if ret != "" {
+			ret += ",?"
+		} else {
+			ret = "?"
+		}
+	}
+
+	return ret
 }
 
 func openDB(path string) (*DB, error) {
@@ -233,16 +293,6 @@ func openDB(path string) (*DB, error) {
 	}
 
 	ret.selectAllEntriesByStringStmt, err = ret.conn.Prepare("SELECT id, prio, text, timestamp, etype FROM entries WHERE text LIKE ? ORDER BY prio DESC, timestamp DESC")
-	if err != nil {
-		return nil, err
-	}
-
-	ret.selectEntriesByTypeStmt, err = ret.conn.Prepare("SELECT id, prio, text, timestamp, etype FROM entries WHERE etype = ANY(?) ORDER BY prio DESC, timestamp DESC")
-	if err != nil {
-		return nil, err
-	}
-
-	ret.selectEntriesByStringTypeStmt, err = ret.conn.Prepare("SELECT id, prio, text, timestamp, etype FROM entries WHERE etype = ANY(?) AND text LIKE ? ORDER BY prio DESC, timestamp DESC")
 	if err != nil {
 		return nil, err
 	}
