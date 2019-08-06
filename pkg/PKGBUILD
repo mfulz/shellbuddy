@@ -7,7 +7,7 @@ url="https://github.com/mfulz/$pkgname"
 license=('GPL')
 makedepends=('go')
 source=("https://github.com/mfulz/shellbuddy/archive/0.2.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('0cc4da546fea2befead7cccbad0a718c9a57af63b2e7ca2047a1fa78ed2171ad')
 
 build() {
     cd $pkgname
