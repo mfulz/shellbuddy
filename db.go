@@ -126,7 +126,7 @@ func (db *DB) GetAllEntriesByType(search string, etypes []EntryType) ([]Entry, e
 			qetypes[i] = e
 		}
 
-		stmt, err := db.genInQuery(len(qetypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE etype IN (", ") ORDER BY prio DESC, timestamp DESC")
+		stmt, err := db.genInQuery(len(etypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE etype IN (", ") ORDER BY prio DESC, timestamp DESC")
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +144,7 @@ func (db *DB) GetAllEntriesByType(search string, etypes []EntryType) ([]Entry, e
 			qetypes[i+1] = e
 		}
 
-		stmt, err := db.genInQuery(len(qetypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE text LIKE ? AND etype IN (", ") ORDER BY prio DESC, timestamp DESC")
+		stmt, err := db.genInQuery(len(etypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE text LIKE ? AND etype IN (", ") ORDER BY prio DESC, timestamp DESC")
 		if err != nil {
 			return nil, err
 		}
