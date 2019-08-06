@@ -6,14 +6,16 @@ import (
 )
 
 type DB struct {
-	conn                         *sql.DB
-	addEntryStmt                 *sql.Stmt
-	selectEntryStmt              *sql.Stmt
-	updateEntryStmt              *sql.Stmt
-	selectEntriesStmt            *sql.Stmt
-	selectAllEntriesStmt         *sql.Stmt
-	selectEntriesByStringStmt    *sql.Stmt
-	selectAllEntriesByStringStmt *sql.Stmt
+	conn                          *sql.DB
+	addEntryStmt                  *sql.Stmt
+	selectEntryStmt               *sql.Stmt
+	updateEntryStmt               *sql.Stmt
+	selectEntriesStmt             *sql.Stmt
+	selectAllEntriesStmt          *sql.Stmt
+	selectEntriesByStringStmt     *sql.Stmt
+	selectAllEntriesByStringStmt  *sql.Stmt
+	selectEntriesByTypeStmt       *sql.Stmt
+	selectEntriesByStringTypeStmt *sql.Stmt
 }
 
 func (db *DB) getEntry(text string, etype EntryType) (Entry, error) {
@@ -113,34 +115,109 @@ func (db *DB) GetAllEntries(search string) ([]Entry, error) {
 	return ret, nil
 }
 
+func (db *DB) GetAllEntriesByType(search string, etypes []EntryType) ([]Entry, error) {
+	ret := []Entry{}
+
+	var res *sql.Rows
+
+	if search == "" {
+		qetypes := make([]interface{}, len(etypes))
+		for i, e := range etypes {
+			qetypes[i] = e
+		}
+
+		stmt, err := db.genInQuery(len(qetypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE etype IN (", ") ORDER BY prio DESC, timestamp DESC")
+		if err != nil {
+			return nil, err
+		}
+		defer stmt.Close()
+
+		res, err = stmt.Query(qetypes...)
+		if err != nil {
+			return ret, err
+		}
+		defer res.Close()
+	} else {
+		qetypes := make([]interface{}, len(etypes)+1)
+		qetypes[0] = "%" + search + "%"
+		for i, e := range etypes {
+			qetypes[i+1] = e
+		}
+
+		stmt, err := db.genInQuery(len(qetypes), "SELECT id, prio, text, timestamp, etype FROM entries WHERE text LIKE ? AND etype IN (", ") ORDER BY prio DESC, timestamp DESC")
+		if err != nil {
+			return nil, err
+		}
+		defer stmt.Close()
+
+		res, err = stmt.Query(qetypes...)
+		if err != nil {
+			return ret, err
+		}
+		defer res.Close()
+	}
+
+	for res.Next() {
+		e := Entry{}
+		err := res.Scan(&e.id, &e.prio, &e.text, &e.timestamp, &e.etype)
+		if err != nil {
+			return []Entry{}, err
+		}
+
+		ret = append(ret, e)
+	}
+
+	return ret, nil
+}
+
 func (db *DB) AddPath(path string) error {
-	err := db.addEntry(path, PATH)
+	err := db.addEntry(path, DIR)
 	return err
 }
 
 func (db *DB) GetPath(path string) (Entry, error) {
-	ret, err := db.getEntry(path, PATH)
+	ret, err := db.getEntry(path, DIR)
 	return ret, err
 }
 
 func (db *DB) GetPathes(search string) ([]Entry, error) {
-	ret, err := db.getEntries(search, PATH)
+	ret, err := db.getEntries(search, DIR)
 	return ret, err
 }
 
 func (db *DB) AddCmd(cmd string) error {
-	err := db.addEntry(cmd, CMD)
+	err := db.addEntry(cmd, COMMAND)
 	return err
 }
 
 func (db *DB) GetCmd(cmd string) (Entry, error) {
-	ret, err := db.getEntry(cmd, CMD)
+	ret, err := db.getEntry(cmd, COMMAND)
 	return ret, err
 }
 
 func (db *DB) GetCmds(cmd string) ([]Entry, error) {
-	ret, err := db.getEntries(cmd, CMD)
+	ret, err := db.getEntries(cmd, COMMAND)
 	return ret, err
+}
+
+func (db *DB) genInQuery(l int, queryStart string, queryEnd string) (*sql.Stmt, error) {
+	ret, err := db.conn.Prepare(queryStart + genQueryPlaceholders(l) + queryEnd)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+func (db *DB) Close() {
+	db.addEntryStmt.Close()
+	db.selectEntryStmt.Close()
+	db.updateEntryStmt.Close()
+	db.selectEntriesStmt.Close()
+	db.selectAllEntriesStmt.Close()
+	db.selectEntriesByStringStmt.Close()
+	db.selectAllEntriesByStringStmt.Close()
+	db.conn.Close()
 }
 
 func initDB(db *sql.DB) error {
@@ -155,6 +232,20 @@ func initDB(db *sql.DB) error {
 	}
 
 	return nil
+}
+
+func genQueryPlaceholders(l int) string {
+	ret := ""
+
+	for i := 0; i < l; i++ {
+		if ret != "" {
+			ret += ",?"
+		} else {
+			ret = "?"
+		}
+	}
+
+	return ret
 }
 
 func openDB(path string) (*DB, error) {

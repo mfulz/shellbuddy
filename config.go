@@ -76,24 +76,6 @@ func writeConfig(a *args) error {
 		return err
 	}
 
-	line = "# ShellType set this to the shell you're using. (zsh or bash)\n"
-	if _, err := cf.WriteString(line); err != nil {
-		return err
-	}
-	line = "ShellType = \"bash\"\n\n"
-	if _, err := cf.WriteString(line); err != nil {
-		return err
-	}
-
-	line = "# HistoryFile set this to the shell's history file location\n"
-	if _, err := cf.WriteString(line); err != nil {
-		return err
-	}
-	line = "HistoryFile = \"" + path.Join(h, ".bash_history") + "\"\n\n"
-	if _, err := cf.WriteString(line); err != nil {
-		return err
-	}
-
 	line = "# IgnoreFromHistory set this to a list for commands that should be ignored from the history file. Normally the functions to use shellbuddy\n"
 	if _, err := cf.WriteString(line); err != nil {
 		return err
