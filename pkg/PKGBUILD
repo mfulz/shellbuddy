@@ -1,17 +1,18 @@
 pkgname=shellbuddy
-pkgver=0.1
+pkgver=0.2
 pkgrel=1
 pkgdesc="History and path tracking for shells"
 arch=('x86_64')
 url="https://github.com/mfulz/$pkgname"
 license=('GPL')
-makedepends=('go-pie')
-source=("git://github.com/mfulz/shellbuddy.git")
+makedepends=('go')
+source=("https://github.com/mfulz/shellbuddy/archive/0.2.tar.gz")
 sha256sums=('SKIP')
 
 build() {
     cd $pkgname
     go build \
+        -buildmode=pie \
         -gcflags "all=-trimpath=$PWD" \
         -asmflags "all=-trimpath=$PWD" \
         -ldflags "-extldflags $LDFLAGS" \
