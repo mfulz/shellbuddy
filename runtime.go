@@ -184,5 +184,14 @@ func (r *appRuntime) Run() ([]Entry, error) {
 		return []Entry{}, r.AddEntries()
 	}
 
-	return r.GetEntries()
+	ret, err := r.GetEntries()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range ret {
+		*e.Timestamp = e.Timestamp.In(r.location)
+	}
+
+	return ret, nil
 }

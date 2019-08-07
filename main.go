@@ -6,6 +6,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"os"
 	"path"
+	"strings"
 )
 
 type args struct {
@@ -71,9 +72,32 @@ func main() {
 		return
 	}
 
+	templates := &promptui.SelectTemplates{
+		Label:    "{{ . }}?",
+		Active:   "\U0001F336 {{ .Text | cyan }} ({{ .Etype | red }})",
+		Inactive: "  {{ .Text | cyan }} ({{ .Etype | red }})",
+		Selected: "\U0001F336 {{ .Text | red | cyan }}",
+		Details: `
+--------- Entry ----------
+{{ "Text:" | faint }}	{{ .Text }}
+{{ "Type:" | faint }}	{{ .Etype }}
+{{ "Prio:" | faint }}	{{ .Prio }}
+{{ "Last called:" | faint }}	{{ .Timestamp }}`,
+	}
+
+	searcher := func(input string, index int) bool {
+		entry := e[index]
+		name := strings.Replace(strings.ToLower(entry.Text), " ", "", -1)
+		input = strings.Replace(strings.ToLower(input), " ", "", -1)
+
+		return strings.Contains(name, input)
+	}
+
 	prompt := promptui.Select{
 		Label:        "ShellBuddy",
 		Items:        e,
+		Templates:    templates,
+		Searcher:     searcher,
 		Size:         r.maxEntries,
 		HideSelected: true,
 		IsVimMode:    r.vimMode,
@@ -85,11 +109,11 @@ func main() {
 	}
 
 	if a.stdin {
-		err = WriteToShellStdin(e[i].text)
+		err = WriteToShellStdin(e[i].Text)
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, "%v", e[i].text)
+		fmt.Fprintf(os.Stderr, "%v", e[i].Text)
 	}
 }

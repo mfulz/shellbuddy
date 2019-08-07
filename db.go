@@ -31,7 +31,7 @@ func (db *DB) getEntry(text string, etype EntryType) (Entry, error) {
 		return ret, nil
 	}
 
-	err = res.Scan(&ret.id, &ret.prio, &ret.text, &ret.timestamp, &ret.etype)
+	err = res.Scan(&ret.id, &ret.Prio, &ret.Text, &ret.Timestamp, &ret.Etype)
 
 	return ret, err
 }
@@ -48,7 +48,7 @@ func (db *DB) addEntry(text string, etype EntryType) error {
 			return err
 		}
 	} else {
-		_, err := db.updateEntryStmt.Exec(e.prio+1, e.id)
+		_, err := db.updateEntryStmt.Exec(e.Prio+1, e.id)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func (db *DB) getEntries(search string, etype EntryType) ([]Entry, error) {
 
 	for res.Next() {
 		e := Entry{}
-		err := res.Scan(&e.id, &e.prio, &e.text, &e.timestamp, &e.etype)
+		err := res.Scan(&e.id, &e.Prio, &e.Text, &e.Timestamp, &e.Etype)
 		if err != nil {
 			return []Entry{}, err
 		}
@@ -104,7 +104,7 @@ func (db *DB) GetAllEntries(search string) ([]Entry, error) {
 
 	for res.Next() {
 		e := Entry{}
-		err := res.Scan(&e.id, &e.prio, &e.text, &e.timestamp, &e.etype)
+		err := res.Scan(&e.id, &e.Prio, &e.Text, &e.Timestamp, &e.Etype)
 		if err != nil {
 			return []Entry{}, err
 		}
@@ -159,7 +159,7 @@ func (db *DB) GetAllEntriesByType(search string, etypes []EntryType) ([]Entry, e
 
 	for res.Next() {
 		e := Entry{}
-		err := res.Scan(&e.id, &e.prio, &e.text, &e.timestamp, &e.etype)
+		err := res.Scan(&e.id, &e.Prio, &e.Text, &e.Timestamp, &e.Etype)
 		if err != nil {
 			return []Entry{}, err
 		}

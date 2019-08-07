@@ -14,10 +14,10 @@ const (
 
 type Entry struct {
 	id        int64
-	prio      int64
-	text      string
-	timestamp *time.Time
-	etype     EntryType
+	Prio      int64
+	Text      string
+	Timestamp *time.Time
+	Etype     EntryType
 }
 
 func (e EntryType) String() string {
@@ -43,5 +43,5 @@ func StringToEntryType(entry string) (EntryType, error) {
 }
 
 func (e Entry) String() string {
-	return fmt.Sprintf("%v (%v)", e.text, e.etype)
+	return fmt.Sprintf("%v (%v)", e.Text, e.Etype)
 }
