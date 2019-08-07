@@ -99,6 +99,14 @@ func main() {
 		return strings.Contains(name, input)
 	}
 
+	selectKeys := promptui.SelectKeys{
+		Next:     promptui.Key{promptui.KeyNext, promptui.KeyNextDisplay},
+		Prev:     promptui.Key{promptui.KeyPrev, promptui.KeyPrevDisplay},
+		PageUp:   promptui.Key{promptui.KeyBackward, promptui.KeyBackwardDisplay},
+		PageDown: promptui.Key{promptui.KeyForward, promptui.KeyForwardDisplay},
+		Search:   promptui.Key{rune('#'), "# toggle search"},
+	}
+
 	prompt := promptui.Select{
 		Label:        "ShellBuddy",
 		Items:        e,
@@ -107,6 +115,7 @@ func main() {
 		Size:         r.maxEntries,
 		HideSelected: true,
 		IsVimMode:    r.vimMode,
+		Keys:         &selectKeys,
 	}
 
 	i, _, err := prompt.Run()
