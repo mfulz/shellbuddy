@@ -18,6 +18,7 @@ type args struct {
 	shellType   string
 	historyFile string
 	stdin       bool
+	stdinPrefix string
 }
 
 func parseArgs() (*args, error) {
@@ -36,9 +37,14 @@ func parseArgs() (*args, error) {
 	flag.StringVar(&ret.etype, "entries", "", "Select type of entries. Can be provided as comma seperated list (\"dirs,commands\"). If omitted all entries will be used")
 	flag.StringVar(&ret.search, "search", "", "Select entries by search string")
 	flag.BoolVar(&ret.init, "init", false, "Initialize configuration")
+	flag.StringVar(&ret.stdinPrefix, "stdinpre", "", "Add this text to the input buffer before the output")
 	flag.BoolVar(&ret.stdin, "stdin", false, "Write directly to the shell's input buffer via ioctl")
 
 	flag.Parse()
+
+	if ret.stdinPrefix != "" && !ret.stdin {
+		ret.stdin = true
+	}
 
 	if ret.init {
 		err := writeConfig(ret)
@@ -109,7 +115,11 @@ func main() {
 	}
 
 	if a.stdin {
-		err = WriteToShellStdin(e[i].Text)
+		var stdinPrefix string
+		if a.stdinPrefix != "" {
+			stdinPrefix = a.stdinPrefix + " "
+		}
+		err = WriteToShellStdin(stdinPrefix + e[i].Text)
 		if err != nil {
 			panic(err)
 		}
