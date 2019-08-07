@@ -67,6 +67,10 @@ Usage of shellbuddy:
         Select entries by search string
   -shell string
         Specify the desired shell ("bash" or "zsh"). Normally this will be detected automatically.
+  -stdin
+        Write directly to the shell's input buffer via ioctl
+  -stdinpre string
+        Add this text to the input buffer before the output
 ```
 
 ## shellbuddy in action
